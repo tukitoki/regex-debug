@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/regex.css') }}">
+{% endblock %}
+{% block content %}
+    <form action="{{ url_for('regex') }}" method="post">
+        <div class="function-chose">
+            <div class="chose-container">
+                <h1>Function</h1>
+                <div class="dropdown-divider"></div>
+                <input type="checkbox" class="btn-check" id="match" autocomplete="on" name="function"
+                       value="match" onclick="setFunction(this.id, 'substitution')" {{ flags_checkers.function_match }}>
+                <label class="btn btn-checker btn-outline-secondary" for="match"
+                       title="Don't return after first match">Match</label>
+                <input type="checkbox" class="btn-check" id="substitution" autocomplete="on" name="function"
+                       value="substitution"
+                       onclick="setFunction(this.id, 'match')" {{ flags_checkers.function_substitution }}>
+                <label class="btn btn-checker btn-outline-secondary" for="substitution"
+                       title="Don't return after first match">Substitution</label>
+            </div>
+        </div>
+        <div class="main-container">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <input class="btn btn-outline-secondary dropdown-toggle" id="dropdown-btn" type="button"
+                           aria-haspopup="true" aria-expanded="false" name="delimiter" value="r">
+                    <div id="delimiter-dropdown" class="dropdown-menu">
+                        <a class="dropdown-item" id="one" onclick="setDelimiterOne()"> ' </a>
+                        <a class="dropdown-item" id="two" onclick="setDelimiterTwo()"> '' </a>
+                        <a class="dropdown-item" id="three" onclick="setDelimiterThree()"> ''' </a>
+                        <a class="dropdown-item" id="three-double" onclick="setDelimiterThreeDouble()"> """ </a>
+                    </div>
+                </div>
+                <input type="text" class="form-control" aria-label="Text input with dropdown button" name="regex"
+                       value={{ str_form.regex_string }}>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary dropdown-toggle" id="dropdown-btn-2" type="button"
+                            aria-haspopup="true" aria-expanded="false">{{ flags_checkers.flag_str }}</button>
+                    <div id="flags-dropdown" class="dropdown-menu">
+                        <input type="checkbox" class="btn-check" id="global" autocomplete="on" name="flag"
+                               value="global" {{ flags_checkers.g }} onclick="setFlag(this.id, 'g')">
+                        <label class="btn btn-checker btn-outline-secondary" for="global"
+                               title="Don't return after first match"><strong>g</strong>lobal</label>
+                        <input type="checkbox" class="btn-check" id="multiline" autocomplete="off" name="flag"
+                               value="multiline" {{ flags_checkers.m }} onclick="setFlag(this.id, 'm')">
+                        <label class="btn btn-checker btn-outline-secondary" for="multiline"
+                               title="^ and $ match start/end of line"><strong>m</strong>ulti line</label>
+                        <input type="checkbox" class="btn-check" id="insens" autocomplete="off" name="flag"
+                               value="insensitive" {{ flags_checkers.i }} onclick="setFlag(this.id, 'i')">
+                        <label class="btn btn-checker btn-outline-secondary" for="insens"
+                               title="Case insensitive match"><strong>i</strong>nsensitive</label>
+                        <input type="checkbox" class="btn-check" id="extended" autocomplete="off" name="flag"
+                               value="extended" {{ flags_checkers.x }} onclick="setFlag(this.id, 'x')">
+                        <label class="btn btn-checker btn-outline-secondary" for="extended"
+                               title="Ignore whitespace">e<strong>x</strong>tended</label>
+                        <input type="checkbox" class="btn-check" id="single-line" autocomplete="off" name="flag"
+                               value="single-line" {{ flags_checkers.s }} onclick="setFlag(this.id, 's')">
+                        <label class="btn btn-checker btn-outline-secondary" for="single-line"
+                               title="Dot matches newline"><strong>s</strong>ingle line</label>
+                        <input type="checkbox" class="btn-check" id="unicode" autocomplete="off" name="flag"
+                               value="unicode" {{ flags_checkers.u }} onclick="setFlag(this.id, 'u', 'ascii', 'a')">
+                        <label class="btn btn-checker btn-outline-secondary" for="unicode"
+                               title="Match with full unicode"><strong>u</strong>nicode</label>
+                        <input type="checkbox" class="btn-check" id="ascii" autocomplete="off" name="flag"
+                               value="ascii" {{ flags_checkers.a }} onclick="setFlag(this.id, 'a', 'unicode', 'u')">
+                        <label class="btn btn-checker btn-outline-secondary" for="ascii"
+                               title="Make escape sequences perform ASCII-only matching"><strong>a</strong>scii</label>
+                    </div>
+                </div>
+                <input type="submit" class="btn btn-outline-secondary btn-right" name="form-name" value="debug">
+            </div>
+            <div class="mb-3">
+                <label for="test-string" class="form-label">Test string</label>
+                <textarea type="text" class="form-control input-area test-string" id="test-string" rows="7"
+                          name="test_string" {% if flags_checkers.subs_display %}
+                          style="height: calc(70vh - 200px)"
+                {% endif %}>{{ str_form.test_string }}</textarea>
+            </div>
+            <div class="substitution-container" id="subs-container" {% if flags_checkers.subs_display %}
+                 style="display: block"
+            {% else %} style="display: none;"
+            {% endif %}>
+                <input type="text" class="form-control" aria-label="Text input with dropdown button"
+                       name="replace-string"
+                       value={{ str_form.subs_string }}>
+                <div class="mb-3">
+                    <label for="subs-string" class="form-label">Subs string</label>
+                    <textarea readonly type="text" class="form-control input-area subs-string" id="subs-string" rows="7"
+                              name="subs-string">{{ matches.subs_match_string }}</textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="output-block">
+        <div class="output-text-block regex-description">
+            <h1>Explanation</h1>
+            <div class="dropdown-divider"></div>
+            {% if flags_checkers.flag_description_len == 0 %}
+                <label>An explanation of your regex will be automatically generated as you type.</label>
+            {% endif %}
+            {% for index in range(0, flags_checkers.flag_description_len) %}
+                <li>{{ flags_checkers.flag_description[index] }}</li>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="output-block">
+        <div class="output-text-block match-information">
+            <h1>Match information</h1>
+            <div class="dropdown-divider"></div>
+            {% if matches.len == 0 and not matches.find_condition %}
+                <label>Detailed match information will be displayed here auto</label>
+            {% elif matches.len == 0 and matches.find_condition %}
+                <label>Your regular expression does not match the subject string.</label>
+            {% endif %}
+            {% for index in range(0, matches.len) %}
+                <li>Match {{ index + 1 }} {{ matches.span[index] }} {{ matches.matches[index] }}</li>
+            {% endfor %}
+        </div>
+    </div>
+    <form action="{{ url_for('regex') }}" method="post">
+        <div class="output-block">
+            <div class="output-text-block flags-exmaples">
+                <h1>Fast flags examples</h1>
+                <div class="dropdown-divider"></div>
+                <div class="flag-buttons-examples">
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="global"
+                            name="form-name" value="global">Global - <strong>g</strong>
+                    </button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="multiline"
+                            name="form-name" value="multiline">Multiline -
+                        <strong>m</strong></button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="insens"
+                            name="form-name" value="insensitive">Case insensitive - <strong>i</strong>
+                    </button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="extended"
+                            name="form-name" value="extended">Extended (ignore whitespace
+                        / verbose) - <strong>x</strong></button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="single-line"
+                            name="form-name" value="single-line">Single line -
+                        <strong>s</strong></button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="unicode"
+                            name="form-name" value="unicode">Enable unicode support -
+                        <strong>u</strong></button>
+                    <button type="submit" class="btn btn-outline-secondary btn-flag-example" id="ascii" name="form-name"
+                            value="ascii" onclick="setFlag(this.id, 'a')">Restrict matches to ASCII
+                        only - <strong>a</strong></button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script src="{{ url_for('static', filename='js/regex.js') }}"></script>
+{% endblock %}

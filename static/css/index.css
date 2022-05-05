@@ -1,0 +1,14 @@
+.container {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+}
+
+.header {
+    text-align: center;
+}
+
+.main-text {
+    text-align: center;
+    margin: 20px;
+}

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/about.css') }}">
+{% endblock %}
+{% block content %}
+    <div class="main-info">
+        <h1>About</h1>
+        <div class="main-text">My name is Pavel Raspopov.<br/>
+            I'm student of Voronezh State University, Computer Science Faculty. This is my RegularExpression debug site.<br/>
+            <a href="https://github.com/tukitoki"><strong>GITHUB</strong></a>
+        </div>
+    </div>
+{% endblock %}
